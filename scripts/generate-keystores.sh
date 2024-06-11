@@ -54,11 +54,18 @@ cat "$OUTDIR"/p256.crt "$OUTDIR"/p384.crt >> "$OUTDIR"/chain.pem
     -destkeystore "$OUTDIR"/certs-and-keys-pkcs12.jks -deststoretype pkcs12 -deststorepass "$password"
 
 function keystore_list() {
-  "$KEYTOOL" -keystore "$1" -storepass "$password" -list > "$1".list
+  java com/edutko/Main "$1" "$2" > "$(dirname "$1")/$(basename "$1" .jks).json"
 }
 
-keystore_list "$OUTDIR"/certs.jks
-keystore_list "$OUTDIR"/certs-jce.jks
-keystore_list "$OUTDIR"/certs-pkcs12.jks
-keystore_list "$OUTDIR"/certs-and-keys-jce.jks
-keystore_list "$OUTDIR"/certs-and-keys-pkcs12.jks
+rm -rf com/edutko/*.class
+javac com/edutko/Main.java
+
+keystore_list "$OUTDIR"/cacerts
+keystore_list "$OUTDIR"/cacerts-pkcs12
+keystore_list "$OUTDIR"/certs.jks "$password"
+keystore_list "$OUTDIR"/certs-jce.jks "$password"
+keystore_list "$OUTDIR"/certs-pkcs12.jks "$password"
+keystore_list "$OUTDIR"/certs-and-keys-jce.jks "$password"
+keystore_list "$OUTDIR"/certs-and-keys-pkcs12.jks "$password"
+
+rm -f com/edutko/*.class

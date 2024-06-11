@@ -7,6 +7,8 @@ import (
 	"crypto/md5"
 
 	javalang "github.com/edutko/cafegopher/java/lang"
+
+	"jks-go/crypto/pkcs7"
 )
 
 func DecryptPBEWithMD5AndTripleDES(ciphertext []byte, keyPassword javalang.String, salt []byte, iterations int) []byte {
@@ -21,7 +23,7 @@ func DecryptPBEWithMD5AndTripleDES(ciphertext []byte, keyPassword javalang.Strin
 	plaintext := make([]byte, len(ciphertext))
 	c.CryptBlocks(plaintext, ciphertext)
 
-	return plaintext
+	return pkcs7.Unpad(plaintext, 16)
 }
 
 func pbkdfMD5(password javalang.String, salt []byte, iterations int) ([]byte, []byte) {

@@ -5,6 +5,8 @@ import (
 	"crypto/sha1"
 
 	javalang "github.com/edutko/cafegopher/java/lang"
+
+	"jks-go/crypto/pkcs7"
 )
 
 func JavaKeystoreMAC(data []byte, keystorePassword javalang.String) []byte {
@@ -40,7 +42,7 @@ func DecryptJKSEntry(data []byte, keyPassword javalang.String) []byte {
 		return nil
 	}
 
-	return plaintext
+	return pkcs7.Unpad(plaintext, 16)
 }
 
 func splitCiphertext(data []byte) (salt, ciphertext, tag []byte) {

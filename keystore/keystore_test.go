@@ -1,12 +1,9 @@
 package keystore
 
 import (
-	"bufio"
-	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -28,24 +25,29 @@ func TestLoadFromFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			info := parseKeytoolListOutput("testdata/" + tc.name + ".list")
+			info := parseKeystoreDump("testdata/" + strings.TrimSuffix(tc.name, ".jks") + ".json")
 
 			k, err := LoadFromFile("testdata/"+tc.name, tc.password)
 
 			assert.Nil(t, err)
-			assert.Equal(t, info.Format, k.Format)
+			assert.Equal(t, info.Type, k.Format)
 			assert.Len(t, k.Entries, len(info.Entries))
 			for _, e := range k.Entries {
 				expected, ok := info.Entries[e.Alias]
 				assert.True(t, ok)
 				assert.Equal(t, expected.Type, e.Type)
-				assert.Equal(t, expected.Date, truncateDate(e.Date))
-				if expected.Type == PrivateKeyEntry || expected.Type == TrustedCertEntry {
-					assert.Equal(t, expected.Fingerprint, sha256.Sum256(e.Certificates[0].Raw))
+				assert.Equal(t, expected.Date, e.Date)
+				if expected.Type == TrustedCertEntry {
+					assert.Equal(t, expected.Items[0], e.Certificates[0].Raw)
 				}
-				if expected.Type == PrivateKeyEntry || expected.Type == SecretKeyEntry {
+				if expected.Type == SecretKeyEntry {
 					plaintext, _ := e.Decrypt(password)
-					assert.NotEmpty(t, plaintext)
+					assert.Equal(t, expected.Items[0], plaintext)
+				}
+				if expected.Type == PrivateKeyEntry {
+					plaintext, _ := e.Decrypt(password)
+					assert.Equal(t, expected.Items[0], plaintext)
+					assert.Equal(t, expected.Items[1], e.Certificates[0].Raw)
 				}
 			}
 		})
@@ -65,12 +67,12 @@ func TestLoadFromFile_PKCS12(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			info := parseKeytoolListOutput("testdata/" + tc.name + ".list")
+			info := parseKeystoreDump("testdata/" + strings.TrimSuffix(tc.name, ".jks") + ".json")
 
 			k, err := LoadFromFile("testdata/"+tc.name, tc.password)
 
 			assert.Nil(t, err)
-			assert.Equal(t, info.Format, k.Format)
+			assert.Equal(t, info.Type, k.Format)
 			assert.Len(t, k.Entries, len(info.Entries))
 			for _, e := range k.Entries {
 				// TODO: modify pkcs12 library to capture alias
@@ -90,10 +92,6 @@ func TestLoadFromFile_PKCS12(t *testing.T) {
 	}
 }
 
-func truncateDate(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local)
-}
-
 func loadPassword() string {
 	b, err := os.ReadFile("testdata/password")
 	if err != nil {
@@ -102,75 +100,38 @@ func loadPassword() string {
 	return string(b)
 }
 
-func parseKeytoolListOutput(name string) keystoreInfo {
-	f, err := os.Open(name)
+func parseKeystoreDump(name string) keystoreInfo {
+	data, err := os.ReadFile(name)
 	if err != nil {
 		panic(err)
 	}
 
 	var k keystoreInfo
-	var count int
-	var entries []entryInfo
-
-	s := bufio.NewScanner(f)
-	for s.Scan() {
-		l := strings.TrimSpace(s.Text())
-		switch {
-		case l == "":
-			continue
-
-		case strings.HasPrefix(l, "Keystore type:"):
-			k.Format = KeystoreType(strings.TrimSpace(strings.SplitN(l, ":", 2)[1]))
-
-		case strings.HasPrefix(l, "Keystore provider:"):
-			continue
-
-		case strings.HasPrefix(l, "Your keystore contains "):
-			count, err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(l, "Your keystore contains "), " entries"))
-
-		case strings.HasPrefix(l, "Certificate fingerprint (SHA-256):"):
-			fingerprintString := strings.TrimSpace(strings.SplitN(l, ":", 2)[1])
-			fingerprint, _ := hex.DecodeString(strings.ReplaceAll(fingerprintString, ":", ""))
-			copy(entries[len(entries)-1].Fingerprint[:], fingerprint)
-
-		default:
-			parts := strings.Split(l, ",")
-			if len(parts) != 5 {
-				panic("unexpected data")
-			}
-			date := fmt.Sprintf("%s, %s", strings.TrimSpace(parts[1]), strings.TrimSpace(parts[2]))
-			ts, err := time.ParseInLocation("Jan 2, 2006", date, time.Local)
-			if err != nil {
-				panic(err)
-			}
-			entries = append(entries, entryInfo{
-				Alias: strings.TrimSpace(parts[0]),
-				Date:  ts,
-				Type:  EntryType(strings.TrimSpace(parts[3])),
-			})
-		}
-	}
-
-	if count != len(entries) {
-		panic("parsing failed")
-	}
-
-	k.Entries = make(map[string]entryInfo)
-	for _, e := range entries {
-		k.Entries[e.Alias] = e
+	err = json.Unmarshal(data, &k)
+	if err != nil {
+		panic(err)
 	}
 
 	return k
 }
 
 type keystoreInfo struct {
-	Format  KeystoreType
-	Entries map[string]entryInfo
+	Type    KeystoreType         `json:"type"`
+	Entries map[string]entryInfo `json:"entries"`
 }
 
 type entryInfo struct {
-	Alias       string
-	Date        time.Time
-	Type        EntryType
-	Fingerprint [32]byte
+	Date      time.Time `json:"creationDate"`
+	Type      EntryType `json:"entryType"`
+	Algorithm string    `json:"algorithm"`
+	Format    string    `json:"format"`
+	Items     [][]byte  `json:"items"`
+}
+
+func mustDecodeHex(s string) []byte {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
