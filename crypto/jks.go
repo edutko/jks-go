@@ -6,7 +6,7 @@ import (
 
 	javalang "github.com/edutko/cafegopher/java/lang"
 
-	"jks-go/crypto/pkcs7"
+	"github.com/edutko/jks-go/crypto/pkcs7"
 )
 
 func JavaKeystoreMAC(data []byte, keystorePassword javalang.String) []byte {

@@ -13,7 +13,7 @@ import (
 	"github.com/edutko/cafegopher/java"
 	javalang "github.com/edutko/cafegopher/java/lang"
 
-	javaxcrypto "jks-go/crypto"
+	javaxcrypto "github.com/edutko/jks-go/crypto"
 )
 
 func readJKSHeader(r io.Reader) (header, error) {

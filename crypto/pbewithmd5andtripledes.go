@@ -8,7 +8,7 @@ import (
 
 	javalang "github.com/edutko/cafegopher/java/lang"
 
-	"jks-go/crypto/pkcs7"
+	"github.com/edutko/jks-go/crypto/pkcs7"
 )
 
 func DecryptPBEWithMD5AndTripleDES(ciphertext []byte, keyPassword javalang.String, salt []byte, iterations int) []byte {

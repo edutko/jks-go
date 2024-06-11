@@ -10,7 +10,7 @@ import (
 	"github.com/edutko/cafegopher/java"
 	javalang "github.com/edutko/cafegopher/java/lang"
 
-	javaxcrypto "jks-go/crypto"
+	javaxcrypto "github.com/edutko/jks-go/crypto"
 )
 
 type EntryType string

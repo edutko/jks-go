@@ -1,10 +1,10 @@
-module jks-go
+module github.com/edutko/jks-go
 
 go 1.21
 
 require (
 	github.com/edutko/cafegopher v0.1.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	software.sslmate.com/src/go-pkcs12 v0.4.0
 )
 

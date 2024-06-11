@@ -10,7 +10,7 @@ import (
 
 	javalang "github.com/edutko/cafegopher/java/lang"
 
-	"jks-go/crypto/pkcs12"
+	"github.com/edutko/jks-go/crypto/pkcs12"
 )
 
 var ErrBadMAC = errors.New("invalid MAC")
