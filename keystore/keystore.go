@@ -30,11 +30,13 @@ var JCEKSMagic = []byte{0xCE, 0xCE, 0xCE, 0xCE}
 var CommonPasswords = []string{
 	DefaultSunPassword,
 	DefaultIBMPassword,
+	DefaultJettyPassword,
 }
 
 const (
-	DefaultSunPassword = "changeit"
-	DefaultIBMPassword = "WebAS"
+	DefaultSunPassword   = "changeit"
+	DefaultIBMPassword   = "WebAS"
+	DefaultJettyPassword = "storepwd"
 )
 
 type Keystore struct {
