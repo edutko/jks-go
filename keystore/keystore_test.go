@@ -38,7 +38,10 @@ func TestLoadFromFile(t *testing.T) {
 				assert.Equal(t, expected.Type, e.Type)
 				assert.Equal(t, expected.Date, e.Date)
 				if expected.Type == TrustedCertEntry {
-					assert.Equal(t, expected.Items[0], e.Certificates[0].Raw)
+					assert.Equal(t, len(expected.Items), len(e.Certificates))
+					for i := range expected.Items {
+						assert.Equal(t, expected.Items[i], e.Certificates[i].Raw)
+					}
 				}
 				if expected.Type == SecretKeyEntry {
 					plaintext, _ := e.Decrypt(password)
@@ -47,7 +50,10 @@ func TestLoadFromFile(t *testing.T) {
 				if expected.Type == PrivateKeyEntry {
 					plaintext, _ := e.Decrypt(password)
 					assert.Equal(t, expected.Items[0], plaintext)
-					assert.Equal(t, expected.Items[1], e.Certificates[0].Raw)
+					assert.Equal(t, len(expected.Items), len(e.Certificates)+1)
+					for i := 1; i < len(expected.Items); i++ {
+						assert.Equal(t, expected.Items[i], e.Certificates[i-1].Raw)
+					}
 				}
 			}
 		})
