@@ -1,7 +1,6 @@
 package keystore
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"os"
 	"strings"
@@ -132,12 +131,4 @@ type entryInfo struct {
 	Algorithm string    `json:"algorithm"`
 	Format    string    `json:"format"`
 	Items     [][]byte  `json:"items"`
-}
-
-func mustDecodeHex(s string) []byte {
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
