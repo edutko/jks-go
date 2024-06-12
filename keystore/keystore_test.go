@@ -44,11 +44,11 @@ func TestLoadFromFile(t *testing.T) {
 				}
 				if expected.Type == SecretKeyEntry {
 					plaintext, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Items[0], plaintext)
+					assert.Equal(t, expected.Items[0], plaintext.Bytes)
 				}
 				if expected.Type == PrivateKeyEntry {
 					plaintext, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Items[0], plaintext)
+					assert.Equal(t, expected.Items[0], plaintext.Bytes)
 					assert.Equal(t, len(expected.Items), len(e.Certificates)+1)
 					for i := 1; i < len(expected.Items); i++ {
 						assert.Equal(t, expected.Items[i], e.Certificates[i-1].Raw)

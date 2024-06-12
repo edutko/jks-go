@@ -195,3 +195,10 @@ func validateStoreMAC(data []byte, keystorePassword javalang.String, expectedMAC
 	}
 	return false
 }
+
+type sealedObject struct {
+	SealAlg          string `java:"javax.crypto.SealedObject.sealAlg"`
+	ParamsAlg        string `java:"javax.crypto.SealedObject.paramsAlg"`
+	EncryptedContent []byte `java:"javax.crypto.SealedObject.encryptedContent"`
+	EncodedParams    []byte `java:"javax.crypto.SealedObject.encodedParams"`
+}
