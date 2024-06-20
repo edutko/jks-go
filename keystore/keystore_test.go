@@ -16,7 +16,7 @@ func TestLoadFromFile(t *testing.T) {
 		name     string
 		password string
 	}{
-		{"cacerts", "changeme"},
+		{"cacerts", DefaultPasswordMacOSCacerts},
 		{"certs.jks", password},
 		{"certs-jce.jks", password},
 		{"certs-and-keys-jce.jks", password},

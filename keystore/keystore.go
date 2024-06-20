@@ -27,16 +27,26 @@ const (
 var JKSMagic = []byte{0xFE, 0xED, 0xFE, 0xED}
 var JCEKSMagic = []byte{0xCE, 0xCE, 0xCE, 0xCE}
 
-var CommonPasswords = []string{
-	DefaultSunPassword,
-	DefaultIBMPassword,
-	DefaultJettyPassword,
+var DefaultPasswords = []string{
+	DefaultPasswordOracleCacerts,
+	DefaultPasswordMacOSCacerts,
+	DefaultPasswordWebSphere,
+	DefaultPasswordJetty,
+	"",
+	"secret",
+	"password",             // https://docs.progress.com/bundle/openedge-authentication-gateway-117/page/Change-the-keystore-password-utility-changeP12pwd.html
+	"manage",               // https://tech.forums.softwareag.com/t/which-is-the-default-sag-keystore-password/206510
+	"wso2carbon",           // https://medium.com/@randima.somathilaka/changing-default-keystore-passwords-in-wso2-api-manager-3-0-0-897b0918eb88
+	"aircontrolenterprise", // https://community.ui.com/questions/Unifi-Controller-change-Password-of-the-keystore/e8b6e029-f5a9-4ebd-a009-93046f83a21c
+	"TrCWebAS",             //https://support.hcltechsw.com/csm?id=kb_article&sysparm_article=KB0074500
 }
 
 const (
-	DefaultSunPassword   = "changeit"
-	DefaultIBMPassword   = "WebAS"
-	DefaultJettyPassword = "storepwd"
+	DefaultPasswordJetty         = "storepwd"
+	DefaultPasswordMacOSCacerts  = "changeme"
+	DefaultPasswordOracleCacerts = "changeit" // https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html#terms
+	DefaultPasswordTomcat        = "changeit" // https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html
+	DefaultPasswordWebSphere     = "WebAS"    // https://www.ibm.com/docs/en/was/9.0.5?topic=ssl-keystore-configurations
 )
 
 type Keystore struct {
