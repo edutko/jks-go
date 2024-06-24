@@ -33,23 +33,27 @@ func TestLoadFromFile(t *testing.T) {
 			assert.Len(t, k.Entries, len(info.Entries))
 			for _, e := range k.Entries {
 				expected, ok := info.Entries[e.Alias]
+
 				assert.True(t, ok)
 				assert.Equal(t, expected.Type, e.Type)
 				assert.Equal(t, expected.Date, e.Date)
+
 				if expected.Type == TrustedCertEntry {
 					assert.Equal(t, len(expected.Items), len(e.Certificates))
 					for i := range expected.Items {
 						assert.Equal(t, expected.Items[i], e.Certificates[i].Raw)
 					}
 				}
+
 				if expected.Type == SecretKeyEntry {
 					plaintext, _ := e.Decrypt(password)
 					assert.Equal(t, expected.Items[0], plaintext.Bytes)
 				}
+
 				if expected.Type == PrivateKeyEntry {
 					plaintext, _ := e.Decrypt(password)
 					assert.Equal(t, expected.Items[0], plaintext.Bytes)
-					assert.Equal(t, len(expected.Items), len(e.Certificates)+1)
+					assert.Equal(t, len(expected.Items)-1, len(e.Certificates))
 					for i := 1; i < len(expected.Items); i++ {
 						assert.Equal(t, expected.Items[i], e.Certificates[i-1].Raw)
 					}

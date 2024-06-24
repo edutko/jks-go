@@ -11,6 +11,7 @@ import (
 	javalang "github.com/edutko/cafegopher/java/lang"
 
 	javaxcrypto "github.com/edutko/jks-go/crypto"
+	"github.com/edutko/jks-go/oid"
 )
 
 type EntryType string
@@ -33,12 +34,14 @@ type KeystoreEntry struct {
 	Alias        string
 	Date         time.Time
 	Certificates []*x509.Certificate
-	EncryptedKey struct {
-		Bytes        []byte
-		CipherParams CipherParameters
-		SealAlg      string
-		ParamAlg     string
-	}
+	EncryptedKey
+}
+
+type EncryptedKey struct {
+	Bytes        []byte
+	CipherParams CipherParameters
+	SealAlg      string
+	ParamAlg     string
 }
 
 type CipherParameters struct {
@@ -66,19 +69,22 @@ func (e KeystoreEntry) EncryptionAlgorithm() string {
 func (e KeystoreEntry) Decrypt(password string) (*Key, error) {
 	k := e.EncryptedKey
 	switch e.EncryptionAlgorithm() {
-	case OIDJDKKeyProtector.String():
+	case oid.JDKKeyProtector.String():
 		var priv PrivateKey
 		_, err := asn1.Unmarshal(k.Bytes, &priv)
 		if err != nil {
 			return nil, err
 		}
-		bytes := javaxcrypto.DecryptJKSEntry(priv.PrivateKey, javalang.String(password))
+		b := javaxcrypto.DecryptJKSEntry(priv.PrivateKey, javalang.String(password))
+		var sk pkcs8
+		_, err = asn1.Unmarshal(b, &sk)
 		return &Key{
-			Algorithm: priv.Algo.Algorithm.String(),
-			Bytes:     bytes,
-		}, nil
+			Algorithm: oid.NameOf(sk.Algo.Algorithm),
+			Format:    "PKCS#8",
+			Bytes:     b,
+		}, err
 
-	case OIDJCEKeyProtector.String():
+	case oid.JCEKeyProtector.String():
 		var priv PrivateKey
 		_, err := asn1.Unmarshal(k.Bytes, &priv)
 		if err != nil {
@@ -89,11 +95,14 @@ func (e KeystoreEntry) Decrypt(password string) (*Key, error) {
 		if err != nil {
 			return nil, err
 		}
-		bytes := javaxcrypto.DecryptPBEWithMD5AndTripleDES(priv.PrivateKey, javalang.String(password), params.Salt, params.Rounds)
+		b := javaxcrypto.DecryptPBEWithMD5AndTripleDES(priv.PrivateKey, javalang.String(password), params.Salt, params.Rounds)
+		var sk pkcs8
+		_, err = asn1.Unmarshal(b, &sk)
 		return &Key{
-			Algorithm: priv.Algo.Algorithm.String(),
-			Bytes:     bytes,
-		}, nil
+			Algorithm: oid.NameOf(sk.Algo.Algorithm),
+			Format:    "PKCS#8",
+			Bytes:     b,
+		}, err
 
 	case "PBEWithMD5AndTripleDES":
 		plaintext := javaxcrypto.DecryptPBEWithMD5AndTripleDES(k.Bytes, javalang.String(password), k.CipherParams.Salt, k.CipherParams.Rounds)
@@ -122,9 +131,6 @@ func (e KeystoreEntry) Decrypt(password string) (*Key, error) {
 	}
 }
 
-var OIDJDKKeyProtector = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 42, 2, 17, 1, 1}
-var OIDJCEKeyProtector = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 42, 2, 19, 1}
-
 type keyRep struct {
 	Algorithm string `java:"java.security.KeyRep.algorithm"`
 	Encoded   []byte `java:"java.security.KeyRep.encoded"`
@@ -135,4 +141,10 @@ type keyRep struct {
 type secretKeySpec struct {
 	Algorithm string `java:"javax.crypto.spec.SecretKeySpec.algorithm"`
 	Key       []byte `java:"javax.crypto.spec.SecretKeySpec.key"`
+}
+
+type pkcs8 struct {
+	Version    int
+	Algo       pkix.AlgorithmIdentifier
+	PrivateKey []byte
 }
