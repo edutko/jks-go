@@ -29,11 +29,11 @@ type Key struct {
 	Bytes     []byte
 }
 
-type KeystoreEntry struct {
+type Entry struct {
 	Type         EntryType
 	Alias        string
 	Date         time.Time
-	Certificates []*x509.Certificate
+	Certificates []Certificate
 	EncryptedKey
 }
 
@@ -49,12 +49,35 @@ type CipherParameters struct {
 	Rounds int
 }
 
+type Certificate struct {
+	Type  string
+	Bytes []byte
+}
+
 type PrivateKey struct {
 	Algo       pkix.AlgorithmIdentifier
 	PrivateKey []byte
 }
 
-func (e KeystoreEntry) EncryptionAlgorithm() string {
+func (e Entry) ParseCertificates() ([]*x509.Certificate, error) {
+	certs := make([]*x509.Certificate, 0)
+	for _, cert := range e.Certificates {
+		if cert.Type != "X.509" {
+			return nil, fmt.Errorf("unexpected certitifacte type: %s", cert.Type)
+		}
+		c, err := x509.ParseCertificate(cert.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("x509.ParseCertificate: %w", err)
+		}
+		certs = append(certs, c)
+	}
+	return certs, nil
+}
+
+func (e Entry) EncryptionAlgorithm() string {
+	if len(e.EncryptedKey.Bytes) == 0 {
+		return ""
+	}
 	if e.EncryptedKey.SealAlg == "" {
 		var k PrivateKey
 		_, err := asn1.Unmarshal(e.EncryptedKey.Bytes, &k)
@@ -66,9 +89,12 @@ func (e KeystoreEntry) EncryptionAlgorithm() string {
 	return e.EncryptedKey.SealAlg
 }
 
-func (e KeystoreEntry) Decrypt(password string) (*Key, error) {
+func (e Entry) Decrypt(password string) (*Key, error) {
 	k := e.EncryptedKey
 	switch e.EncryptionAlgorithm() {
+	case "":
+		return nil, nil
+
 	case oid.JDKKeyProtector.String():
 		var priv PrivateKey
 		_, err := asn1.Unmarshal(k.Bytes, &priv)
@@ -127,7 +153,7 @@ func (e KeystoreEntry) Decrypt(password string) (*Key, error) {
 		return nil, err
 
 	default:
-		return nil, fmt.Errorf("unsupported encryption algorithm")
+		return nil, fmt.Errorf("unsupported encryption algorithm: %s", e.EncryptionAlgorithm())
 	}
 }
 

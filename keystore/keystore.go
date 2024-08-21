@@ -2,7 +2,6 @@ package keystore
 
 import (
 	"bytes"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -51,7 +50,7 @@ const (
 
 type Keystore struct {
 	Format  KeystoreType
-	Entries []KeystoreEntry
+	Entries []Entry
 	MAC     []byte
 }
 
@@ -86,8 +85,8 @@ func Parse(data []byte, keystorePassword string) (*Keystore, error) {
 			return nil, fmt.Errorf("pkcs12.DecodeTrustStore: %w", err)
 		}
 		for _, c := range certs {
-			k.Entries = append(k.Entries, KeystoreEntry{
-				Certificates: []*x509.Certificate{c},
+			k.Entries = append(k.Entries, Entry{
+				Certificates: []Certificate{{Type: "X.509", Bytes: c.Raw}},
 			})
 		}
 		return &k, nil
@@ -130,9 +129,9 @@ func InsecureParse(data []byte) (*Keystore, error) {
 			return nil, fmt.Errorf("pkcs12.DecodeTrustStore: %w", err)
 		}
 		for _, c := range certs {
-			k.Entries = append(k.Entries, KeystoreEntry{
+			k.Entries = append(k.Entries, Entry{
 				Type:         TrustedCertEntry,
-				Certificates: []*x509.Certificate{c},
+				Certificates: []Certificate{{Type: "X.509", Bytes: c.Raw}},
 			})
 		}
 	}

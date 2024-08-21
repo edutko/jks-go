@@ -38,24 +38,30 @@ func TestLoadFromFile(t *testing.T) {
 				assert.Equal(t, expected.Type, e.Type)
 				assert.WithinDuration(t, expected.Date, e.Date, 0)
 
-				if expected.Type == TrustedCertEntry {
-					assert.Equal(t, len(expected.Items), len(e.Certificates))
-					for i := range expected.Items {
-						assert.Equal(t, expected.Items[i], e.Certificates[i].Raw)
+				switch expected.Type {
+				case TrustedCertEntry:
+					assert.Len(t, e.Certificates, len(expected.Certs))
+					for i := range expected.Certs {
+						assert.Equal(t, expected.Certs[i].Type, e.Certificates[i].Type)
+						assert.Equal(t, expected.Certs[i].Bytes, e.Certificates[i].Bytes)
 					}
-				}
 
-				if expected.Type == SecretKeyEntry {
-					plaintext, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Items[0], plaintext.Bytes)
-				}
+				case SecretKeyEntry:
+					decrypted, _ := e.Decrypt(password)
+					assert.Equal(t, expected.Algorithm, decrypted.Algorithm)
+					assert.Equal(t, expected.Format, decrypted.Format)
+					assert.Equal(t, expected.Key, decrypted.Bytes)
 
-				if expected.Type == PrivateKeyEntry {
-					plaintext, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Items[0], plaintext.Bytes)
-					assert.Equal(t, len(expected.Items)-1, len(e.Certificates))
-					for i := 1; i < len(expected.Items); i++ {
-						assert.Equal(t, expected.Items[i], e.Certificates[i-1].Raw)
+				case PrivateKeyEntry:
+					decrypted, _ := e.Decrypt(password)
+					assert.Equal(t, expected.Algorithm, decrypted.Algorithm)
+					assert.Equal(t, expected.Format, decrypted.Format)
+					assert.Equal(t, expected.Key, decrypted.Bytes)
+
+					assert.Len(t, e.Certificates, len(expected.Certs))
+					for i := range expected.Certs {
+						assert.Equal(t, expected.Certs[i].Type, e.Certificates[i].Type)
+						assert.Equal(t, expected.Certs[i].Bytes, e.Certificates[i].Bytes)
 					}
 				}
 			}
@@ -130,9 +136,15 @@ type keystoreInfo struct {
 }
 
 type entryInfo struct {
-	Date      time.Time `json:"creationDate"`
-	Type      EntryType `json:"entryType"`
-	Algorithm string    `json:"algorithm"`
-	Format    string    `json:"format"`
-	Items     [][]byte  `json:"items"`
+	Date      time.Time  `json:"creationDate"`
+	Type      EntryType  `json:"entryType"`
+	Algorithm string     `json:"algorithm"`
+	Format    string     `json:"format"`
+	Key       []byte     `json:"key"`
+	Certs     []certInfo `json:"certs"`
+}
+
+type certInfo struct {
+	Type  string `json:"type"`
+	Bytes []byte `json:"bytes"`
 }

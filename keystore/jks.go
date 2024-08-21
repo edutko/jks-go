@@ -3,7 +3,6 @@ package keystore
 import (
 	"bytes"
 	"crypto/sha1"
-	"crypto/x509"
 	"encoding/asn1"
 	"encoding/binary"
 	"fmt"
@@ -37,8 +36,8 @@ type header struct {
 	Length  uint32
 }
 
-func readJKSEntries(r io.Reader, expected int) ([]KeystoreEntry, error) {
-	var es []KeystoreEntry
+func readJKSEntries(r io.Reader, expected int) ([]Entry, error) {
+	var es []Entry
 	for i := 0; i < expected; i++ {
 		b := make([]byte, 4)
 		_, err := io.ReadFull(r, b)
@@ -47,7 +46,7 @@ func readJKSEntries(r io.Reader, expected int) ([]KeystoreEntry, error) {
 		}
 		typ := binary.BigEndian.Uint32(b)
 
-		e := KeystoreEntry{Type: entryType[int(typ)]}
+		e := Entry{Type: entryType[int(typ)]}
 
 		e.Alias, err = readString(r)
 		if err != nil {
@@ -81,14 +80,10 @@ func readJKSEntries(r io.Reader, expected int) ([]KeystoreEntry, error) {
 				certCount = int(binary.BigEndian.Uint32(b))
 			}
 
-			certBytes := make([]byte, 0)
 			for i := 0; i < certCount; i++ {
 				certType, err := readString(r)
 				if err != nil {
 					return nil, err
-				}
-				if certType != "X.509" {
-					return nil, fmt.Errorf("unexpected certitifacte type: %s", certType)
 				}
 
 				l, err := readLength(r, 4)
@@ -100,11 +95,7 @@ func readJKSEntries(r io.Reader, expected int) ([]KeystoreEntry, error) {
 				if err != nil {
 					return nil, err
 				}
-				certBytes = append(certBytes, rawBytes...)
-			}
-			e.Certificates, err = x509.ParseCertificates(certBytes)
-			if err != nil {
-				return nil, err
+				e.Certificates = append(e.Certificates, Certificate{certType, rawBytes})
 			}
 
 		case secretKeyEntry:

@@ -41,7 +41,8 @@ public class Main {
             String entryType = "";
             String algorithm = "";
             String format = "";
-            LinkedList<byte[]> items = new LinkedList<>();
+            byte[] keyData = null;
+            LinkedList<CertInfo> certs = new LinkedList<>();
 
             KeyStore.Entry e = keystore.getEntry(alias, protection);
             if (e instanceof KeyStore.PrivateKeyEntry) {
@@ -49,17 +50,17 @@ public class Main {
                 entryType = "PrivateKeyEntry";
                 algorithm = key.getAlgorithm();
                 format = key.getFormat();
-                items.add(key.getEncoded());
+                keyData = key.getEncoded();
 
                 Certificate[] chain = keystore.getCertificateChain(alias);
                 if (chain != null) {
                     for (Certificate cert : chain) {
-                        items.add(cert.getEncoded());
+                        certs.add(new CertInfo(cert.getType(), cert.getEncoded()));
                     }
                 } else {
                     Certificate cert = keystore.getCertificate(alias);
                     if (cert != null) {
-                        items.add(cert.getEncoded());
+                        certs.add(new CertInfo(cert.getType(), cert.getEncoded()));
                     }
                 }
 
@@ -68,19 +69,19 @@ public class Main {
                 entryType = "SecretKeyEntry";
                 algorithm = key.getAlgorithm();
                 format = key.getFormat();
-                items.add(key.getEncoded());
+                keyData = key.getEncoded();
 
             } else if (e instanceof KeyStore.TrustedCertificateEntry) {
                 entryType = "trustedCertEntry";
                 Certificate[] chain = keystore.getCertificateChain(alias);
                 if (chain != null) {
                     for (Certificate cert : chain) {
-                        items.add(cert.getEncoded());
+                        certs.add(new CertInfo(cert.getType(), cert.getEncoded()));
                     }
                 } else {
                     Certificate cert = keystore.getCertificate(alias);
                     if (cert != null) {
-                        items.add(cert.getEncoded());
+                        certs.add(new CertInfo(cert.getType(), cert.getEncoded()));
                     }
                 }
 
@@ -93,11 +94,18 @@ public class Main {
             System.out.println("      \"entryType\": \"" + entryType + "\",");
             System.out.println("      \"algorithm\": \"" + algorithm + "\",");
             System.out.println("      \"format\": \"" + format + "\",");
-            System.out.println("      \"items\": [");
-            if (!items.isEmpty()) {
-                System.out.println("          \"" + items.stream().map(Base64.getEncoder()::encodeToString).collect(Collectors.joining("\",\n          \"")) + "\"");
+            if (keyData == null) {
+                System.out.println("      \"key\": null,");
+            } else {
+                System.out.println("      \"key\": \"" + Base64.getEncoder().encodeToString(keyData) + "\",");
             }
-            System.out.println("      ]");
+            if (certs.isEmpty()) {
+                System.out.println("      \"certs\": []");
+            } else {
+                System.out.println("      \"certs\": [");
+                System.out.println("          " + certs.stream().map(CertInfo::toJSON).collect(Collectors.joining(",\n          ")));
+                System.out.println("      ]");
+            }
             if (aliases.hasMoreElements()) {
                 System.out.println("    },");
             } else {
@@ -106,5 +114,19 @@ public class Main {
         }
         System.out.println("  }");
         System.out.println("}");
+    }
+
+    private static class CertInfo {
+        private String type;
+        private byte[] bytes;
+
+        CertInfo(String type, byte[] bytes) {
+            this.type = type;
+            this.bytes = bytes;
+        }
+
+        String toJSON() {
+            return "{\"type\": \"" + type + "\", \"bytes\": \"" + Base64.getEncoder().encodeToString(bytes) + "\"}";
+        }
     }
 }
