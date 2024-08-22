@@ -185,7 +185,7 @@ func readDate(r io.Reader) (time.Time, error) {
 
 	u := int64(binary.BigEndian.Uint64(b))
 
-	return time.Unix(u/1000, u%1000*1_000_000), nil
+	return time.UnixMilli(u), nil
 }
 
 func validateStoreMAC(data []byte, keystorePassword javalang.String, expectedMAC []byte) bool {

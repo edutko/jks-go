@@ -36,7 +36,7 @@ func TestLoadFromFile(t *testing.T) {
 
 				assert.True(t, ok)
 				assert.Equal(t, expected.Type, e.Type)
-				assert.Equal(t, expected.Date, e.Date)
+				assert.WithinDuration(t, expected.Date, e.Date, 0)
 
 				if expected.Type == TrustedCertEntry {
 					assert.Equal(t, len(expected.Items), len(e.Certificates))
