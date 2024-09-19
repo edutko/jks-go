@@ -48,13 +48,13 @@ func TestLoadFromFile(t *testing.T) {
 
 				case SecretKeyEntry:
 					decrypted, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Algorithm, decrypted.Algorithm)
+					assert.Equal(t, expected.Algorithm, decrypted.Algorithm.Name)
 					assert.Equal(t, expected.Format, decrypted.Format)
 					assert.Equal(t, expected.Key, decrypted.Bytes)
 
 				case PrivateKeyEntry:
 					decrypted, _ := e.Decrypt(password)
-					assert.Equal(t, expected.Algorithm, decrypted.Algorithm)
+					assert.Equal(t, expected.Algorithm, decrypted.Algorithm.Name)
 					assert.Equal(t, expected.Format, decrypted.Format)
 					assert.Equal(t, expected.Key, decrypted.Bytes)
 

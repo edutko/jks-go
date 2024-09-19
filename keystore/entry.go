@@ -10,8 +10,8 @@ import (
 	"github.com/edutko/cafegopher/java"
 	javalang "github.com/edutko/cafegopher/java/lang"
 
+	"github.com/edutko/jks-go/algorithm"
 	javaxcrypto "github.com/edutko/jks-go/crypto"
-	"github.com/edutko/jks-go/oid"
 )
 
 type EntryType string
@@ -33,7 +33,7 @@ const (
 )
 
 type Key struct {
-	Algorithm string
+	Algorithm algorithm.Algorithm
 	Format    string
 	Bytes     []byte
 }
@@ -83,28 +83,28 @@ func (e Entry) ParseCertificates() ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-func (e Entry) EncryptionAlgorithm() string {
+func (e Entry) EncryptionAlgorithm() algorithm.Algorithm {
 	if len(e.EncryptedKey.Bytes) == 0 {
-		return ""
+		return algorithm.None
 	}
 	if e.EncryptedKey.SealAlg == "" {
 		var k PrivateKey
 		_, err := asn1.Unmarshal(e.EncryptedKey.Bytes, &k)
 		if err != nil {
-			return "unknown"
+			return algorithm.Unknown
 		}
-		return k.Algo.Algorithm.String()
+		return algorithm.FromOID(k.Algo.Algorithm)
 	}
-	return e.EncryptedKey.SealAlg
+	return algorithm.FromName(e.EncryptedKey.SealAlg)
 }
 
 func (e Entry) Decrypt(password string) (*Key, error) {
 	k := e.EncryptedKey
-	switch e.EncryptionAlgorithm() {
+	switch e.EncryptionAlgorithm().Name {
 	case "":
 		return nil, nil
 
-	case oid.JDKKeyProtector.String():
+	case algorithm.JDKKeyProtector.Name:
 		var priv PrivateKey
 		_, err := asn1.Unmarshal(k.Bytes, &priv)
 		if err != nil {
@@ -114,12 +114,12 @@ func (e Entry) Decrypt(password string) (*Key, error) {
 		var sk pkcs8
 		_, err = asn1.Unmarshal(b, &sk)
 		return &Key{
-			Algorithm: oid.NameOf(sk.Algo.Algorithm),
-			Format:    "PKCS#8",
+			Algorithm: algorithm.FromOID(sk.Algo.Algorithm),
+			Format:    KeyFormatPKCS8,
 			Bytes:     b,
 		}, err
 
-	case oid.JCEKeyProtector.String():
+	case algorithm.JCEKeyProtector.Name:
 		var priv PrivateKey
 		_, err := asn1.Unmarshal(k.Bytes, &priv)
 		if err != nil {
@@ -134,19 +134,19 @@ func (e Entry) Decrypt(password string) (*Key, error) {
 		var sk pkcs8
 		_, err = asn1.Unmarshal(b, &sk)
 		return &Key{
-			Algorithm: oid.NameOf(sk.Algo.Algorithm),
-			Format:    "PKCS#8",
+			Algorithm: algorithm.FromOID(sk.Algo.Algorithm),
+			Format:    KeyFormatPKCS8,
 			Bytes:     b,
 		}, err
 
-	case "PBEWithMD5AndTripleDES":
+	case algorithm.PBEWithMD5AndTripleDES.Name:
 		plaintext := javaxcrypto.DecryptPBEWithMD5AndTripleDES(k.Bytes, javalang.String(password), k.CipherParams.Salt, k.CipherParams.Rounds)
 		var sks secretKeySpec
 		err := java.Unmarshal(plaintext, &sks)
 		if err == nil {
 			return &Key{
-				Algorithm: sks.Algorithm,
-				Format:    "RAW",
+				Algorithm: algorithm.FromName(sks.Algorithm),
+				Format:    KeyFormatRaw,
 				Bytes:     sks.Key,
 			}, nil
 		}
@@ -154,7 +154,7 @@ func (e Entry) Decrypt(password string) (*Key, error) {
 		err = java.Unmarshal(plaintext, &kr)
 		if err == nil {
 			return &Key{
-				Algorithm: kr.Algorithm,
+				Algorithm: algorithm.FromName(kr.Algorithm),
 				Format:    kr.Format,
 				Bytes:     kr.Encoded,
 			}, nil
@@ -162,7 +162,7 @@ func (e Entry) Decrypt(password string) (*Key, error) {
 		return nil, err
 
 	default:
-		return nil, fmt.Errorf("unsupported encryption algorithm: %s", e.EncryptionAlgorithm())
+		return nil, fmt.Errorf("unsupported encryption algorithm: %s", e.EncryptionAlgorithm().Name)
 	}
 }
 

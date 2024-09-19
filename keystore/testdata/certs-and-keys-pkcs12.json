@@ -2,7 +2,7 @@
   "type": "PKCS12",
   "entries": {
     "aes192": {
-      "creationDate": "2023-11-10T12:17:22.479-05:00",
+      "creationDate": "2024-09-17T20:15:54.821-04:00",
       "entryType": "SecretKeyEntry",
       "algorithm": "AES",
       "format": "RAW",
@@ -10,7 +10,7 @@
       "certs": []
     },
     "rsa2048": {
-      "creationDate": "2023-11-10T12:17:22.580-05:00",
+      "creationDate": "2024-09-17T20:15:54.645-04:00",
       "entryType": "PrivateKeyEntry",
       "algorithm": "RSA",
       "format": "PKCS#8",
@@ -20,7 +20,7 @@
       ]
     },
     "aes128": {
-      "creationDate": "2023-11-10T12:17:22.654-05:00",
+      "creationDate": "2024-09-17T20:15:54.997-04:00",
       "entryType": "SecretKeyEntry",
       "algorithm": "AES",
       "format": "RAW",
@@ -28,7 +28,7 @@
       "certs": []
     },
     "p384": {
-      "creationDate": "2023-11-10T12:17:22.720-05:00",
+      "creationDate": "2024-09-17T20:15:54.409-04:00",
       "entryType": "PrivateKeyEntry",
       "algorithm": "EC",
       "format": "PKCS#8",
@@ -38,7 +38,7 @@
       ]
     },
     "password": {
-      "creationDate": "2023-11-10T12:17:22.785-05:00",
+      "creationDate": "2024-09-17T20:15:55.170-04:00",
       "entryType": "SecretKeyEntry",
       "algorithm": "PBEWithMD5AndDES",
       "format": "RAW",
@@ -46,7 +46,7 @@
       "certs": []
     },
     "aes256": {
-      "creationDate": "2023-11-10T12:17:22.850-05:00",
+      "creationDate": "2024-09-17T20:15:54.321-04:00",
       "entryType": "SecretKeyEntry",
       "algorithm": "AES",
       "format": "RAW",
@@ -54,7 +54,7 @@
       "certs": []
     },
     "p256": {
-      "creationDate": "2023-11-10T12:17:22.913-05:00",
+      "creationDate": "2024-09-17T20:15:55.257-04:00",
       "entryType": "PrivateKeyEntry",
       "algorithm": "EC",
       "format": "PKCS#8",
@@ -64,8 +64,32 @@
           {"type": "X.509", "bytes": "MIIBfTCCAQSgAwIBAgIIaIq4AITH8YAwCgYIKoZIzj0EAwMwFTETMBEGA1UEAxMKUC0zODQgUm9vdDAeFw0yMzExMTAxNzE3MTlaFw0yNDExMTQxNzE3MTlaMBUxEzARBgNVBAMTClAtMzg0IFJvb3QwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATaT28QzLdl8jBxNImcSoC1m9QhGjJIiWWUh8rRhU+AZ646IR5r3eERBaxTxiUyFJlXnp9B8fXKZkqUCUSavLx138vhSIG3ZzL+FVvcnclpLexP6CtgVCF4wRWMYxY5Sc2jITAfMB0GA1UdDgQWBBSq6ZDqKSrfIui8nrdT9fgFsgD07TAKBggqhkjOPQQDAwNnADBkAjAOi25zURKS2MuGR1yNgVKIXn+uVCfGRoUxDYeajPywfJpopfc4U9uxOFI3Ko6Gx/UCMDBJ3P/6Im7Yf9vUv4W3rq+naOo3YZvrQ+XORgGdDyq8h8+QX+XBehKDJfApUofgtQ=="}
       ]
     },
+    "des": {
+      "creationDate": "2024-09-17T20:15:54.734-04:00",
+      "entryType": "SecretKeyEntry",
+      "algorithm": "DES/CBC",
+      "format": "RAW",
+      "key": "uRWihhmh8k8=",
+      "certs": []
+    },
+    "arcfour": {
+      "creationDate": "2024-09-17T20:15:55.084-04:00",
+      "entryType": "SecretKeyEntry",
+      "algorithm": "ARCFOUR",
+      "format": "RAW",
+      "key": "iq34FMY=",
+      "certs": []
+    },
+    "desede": {
+      "creationDate": "2024-09-17T20:15:54.910-04:00",
+      "entryType": "SecretKeyEntry",
+      "algorithm": "DESede",
+      "format": "RAW",
+      "key": "07rC94m/FlsVIKd17Dh1Q+ZrMiA4LBbN",
+      "certs": []
+    },
     "p256-certonly": {
-      "creationDate": "2024-07-21T12:44:28.811-04:00",
+      "creationDate": "2024-09-17T20:15:58.990-04:00",
       "entryType": "trustedCertEntry",
       "algorithm": "",
       "format": "",

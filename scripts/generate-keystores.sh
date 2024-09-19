@@ -42,6 +42,16 @@ cat "$OUTDIR"/p256.crt "$OUTDIR"/p384.crt >> "$OUTDIR"/chain.pem
     -alias aes192 -keyalg aes -keysize 192 -keypass "$password"
 "$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
     -alias aes128 -keyalg aes -keysize 128 -keypass "$password"
+"$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
+    -alias arcfour -keyalg arcfour -keysize 40 -keypass "$password"
+"$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
+    -alias blowfish -keyalg blowfish -keysize 128 -keypass "$password"
+"$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
+    -alias chacha20 -keyalg chacha20 -keysize 256 -keypass "$password"
+"$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
+    -alias des -keyalg des -keypass "$password"
+"$KEYTOOL" -genseckey -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
+    -alias desede -keyalg desede -keypass "$password"
 "$KEYTOOL" -importpass -keystore "$OUTDIR"/certs-and-keys-jce.jks -storetype jceks -storepass "$password" \
     -alias password -keypass "$password" <<<"monkey123"
 
