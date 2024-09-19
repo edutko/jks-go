@@ -23,6 +23,15 @@ const (
 	SecretKeyEntry   EntryType = "SecretKeyEntry"
 )
 
+const (
+	CertTypeX509 = "X.509"
+)
+
+const (
+	KeyFormatRaw   = "RAW"
+	KeyFormatPKCS8 = "PKCS#8"
+)
+
 type Key struct {
 	Algorithm string
 	Format    string
@@ -62,7 +71,7 @@ type PrivateKey struct {
 func (e Entry) ParseCertificates() ([]*x509.Certificate, error) {
 	certs := make([]*x509.Certificate, 0)
 	for _, cert := range e.Certificates {
-		if cert.Type != "X.509" {
+		if cert.Type != CertTypeX509 {
 			return nil, fmt.Errorf("unexpected certitifacte type: %s", cert.Type)
 		}
 		c, err := x509.ParseCertificate(cert.Bytes)

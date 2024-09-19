@@ -131,7 +131,7 @@ func parseKeystoreDump(name string) keystoreInfo {
 }
 
 type keystoreInfo struct {
-	Type    KeystoreType         `json:"type"`
+	Type    Type                 `json:"type"`
 	Entries map[string]entryInfo `json:"entries"`
 }
 

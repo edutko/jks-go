@@ -14,13 +14,13 @@ import (
 
 var ErrBadMAC = errors.New("invalid MAC")
 
-type KeystoreType string
+type Type string
 
 const (
-	KeystoreTypeUnknown KeystoreType = "unknown"
-	KeystoreTypeJKS     KeystoreType = "JKS"
-	KeystoreTypeJCEKS   KeystoreType = "JCEKS"
-	KeystoreTypePKCS12  KeystoreType = "PKCS12"
+	TypeUnknown Type = "unknown"
+	TypeJKS     Type = "JKS"
+	TypeJCEKS   Type = "JCEKS"
+	TypePKCS12  Type = "PKCS12"
 )
 
 var JKSMagic = []byte{0xFE, 0xED, 0xFE, 0xED}
@@ -49,7 +49,7 @@ const (
 )
 
 type Keystore struct {
-	Format  KeystoreType
+	Format  Type
 	Entries []Entry
 	MAC     []byte
 }
@@ -67,7 +67,7 @@ func Parse(data []byte, keystorePassword string) (*Keystore, error) {
 	format := detectFormat(data)
 
 	switch format {
-	case KeystoreTypeJKS, KeystoreTypeJCEKS:
+	case TypeJKS, TypeJCEKS:
 		k, err := InsecureParse(data)
 		if err != nil {
 			return nil, err
@@ -78,7 +78,7 @@ func Parse(data []byte, keystorePassword string) (*Keystore, error) {
 		}
 		return k, nil
 
-	case KeystoreTypePKCS12:
+	case TypePKCS12:
 		k := Keystore{Format: format}
 		certs, err := pkcs12.DecodeTrustStore(data, keystorePassword)
 		if err != nil {
@@ -86,7 +86,7 @@ func Parse(data []byte, keystorePassword string) (*Keystore, error) {
 		}
 		for _, c := range certs {
 			k.Entries = append(k.Entries, Entry{
-				Certificates: []Certificate{{Type: "X.509", Bytes: c.Raw}},
+				Certificates: []Certificate{{Type: CertTypeX509, Bytes: c.Raw}},
 			})
 		}
 		return &k, nil
@@ -100,7 +100,7 @@ func InsecureParse(data []byte) (*Keystore, error) {
 	k.Format = detectFormat(data)
 
 	switch k.Format {
-	case KeystoreTypeJKS, KeystoreTypeJCEKS:
+	case TypeJKS, TypeJCEKS:
 		r := bytes.NewReader(data)
 
 		h, err := readJKSHeader(r)
@@ -123,7 +123,7 @@ func InsecureParse(data []byte) (*Keystore, error) {
 			return nil, fmt.Errorf("possible corruption: unexpected data after MAC")
 		}
 
-	case KeystoreTypePKCS12:
+	case TypePKCS12:
 		certs, err := pkcs12.DecodeTrustStore(data, "")
 		if err != nil {
 			return nil, fmt.Errorf("pkcs12.DecodeTrustStore: %w", err)
@@ -131,7 +131,7 @@ func InsecureParse(data []byte) (*Keystore, error) {
 		for _, c := range certs {
 			k.Entries = append(k.Entries, Entry{
 				Type:         TrustedCertEntry,
-				Certificates: []Certificate{{Type: "X.509", Bytes: c.Raw}},
+				Certificates: []Certificate{{Type: CertTypeX509, Bytes: c.Raw}},
 			})
 		}
 	}
@@ -139,16 +139,16 @@ func InsecureParse(data []byte) (*Keystore, error) {
 	return &k, nil
 }
 
-func detectFormat(data []byte) KeystoreType {
+func detectFormat(data []byte) Type {
 	if bytes.Equal(data[:4], JKSMagic) {
-		return KeystoreTypeJKS
+		return TypeJKS
 
 	} else if bytes.Equal(data[:4], JCEKSMagic) {
-		return KeystoreTypeJCEKS
+		return TypeJCEKS
 
 	} else if pkcs12.MaybePKCS12(data) {
-		return KeystoreTypePKCS12
+		return TypePKCS12
 	}
 
-	return KeystoreTypeUnknown
+	return TypeUnknown
 }
